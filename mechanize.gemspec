@@ -16,5 +16,8 @@ Gem::Specification.new do |gem|
   gem.require_paths = ["lib"]
 
   gem.add_dependency "net-http-persistent"
-
+  gem.add_dependency "nokogiri"
+  gem.add_dependency "domain_name"
+  gem.add_dependency "ntlm-http"
+  gem.add_dependency "webrobots"
 end
