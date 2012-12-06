@@ -925,6 +925,18 @@ Use of #auth and #basic_auth are deprecated due to a security vulnerability.
   end
 
   ##
+  # Whether a redirection continues to use the same verb
+  def redirects_preserve_verb
+    @agend.redirects_preserve_verb
+  end
+
+  ##
+  # Sets whether a redirection continues to use the same verb
+  def redirects_preserve_verb=(preserve_verb)
+    @agent.redirects_preserve_verb = preserve_verb
+  end
+  
+  ##
   # A hash of custom request headers that will be sent on every request
 
   def request_headers

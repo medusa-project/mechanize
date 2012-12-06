@@ -69,6 +69,9 @@ class Mechanize::HTTP::Agent
   # Maximum number of redirects to follow
   attr_accessor :redirection_limit
 
+  # Whether redirects will use the same verb or not
+  attr_accessor :redirects_preserve_verb
+
   # :section: Robots
 
   # When true, this agent will consult the site's robots.txt for each access.
@@ -137,6 +140,7 @@ class Mechanize::HTTP::Agent
     @read_timeout             = nil
     @redirect_ok              = true
     @redirection_limit        = 20
+    self.redirects_preserve_verb = false
     @request_headers          = {}
     @robots                   = false
     @user_agent               = nil
@@ -939,7 +943,11 @@ class Mechanize::HTTP::Agent
     raise Mechanize::RedirectLimitReachedError.new(page, redirects) if
       redirects + 1 > @redirection_limit
 
-    redirect_method = method == :head ? :head : :get
+    if self.redirects_preserve_verb
+      redirect_method = method
+    else
+      redirect_method = method == :head ? :head : :get
+    end
 
     # Make sure we are not copying over the POST headers from the original request
     ['Content-Length', 'Content-MD5', 'Content-Type'].each do |key|
