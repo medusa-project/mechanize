@@ -3,7 +3,7 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 
 Gem::Specification.new do |gem|
   gem.name          = "mechanize"
-  gem.version       = "2.5.1"
+  gem.version       = "2.6.0"
   gem.authors       = ["Eric Hodel", "Howard Ding"]
   gem.email         = ["hding2@illinois.edu"]
   gem.description   = %q{Small mod of Eric Hodels original code for DX interaction}
