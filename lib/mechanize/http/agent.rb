@@ -72,6 +72,11 @@ class Mechanize::HTTP::Agent
   # Whether redirects will use the same verb or not
   attr_accessor :redirects_preserve_verb
 
+  # :section: Allowed error codes
+
+  # List of error codes to handle without raising an exception.
+  attr_accessor :allowed_error_codes
+
   # :section: Robots
 
   # When true, this agent will consult the site's robots.txt for each access.
@@ -123,6 +128,7 @@ class Mechanize::HTTP::Agent
   # implementation detail of mechanize and its API may change at any time.
 
   def initialize
+    @allowed_error_codes      = []
     @conditional_requests     = true
     @context                  = nil
     @content_encoding_hooks   = []
@@ -285,12 +291,12 @@ class Mechanize::HTTP::Agent
     meta = response_follow_meta_refresh response, uri, page, redirects
     return meta if meta
 
+    if robots && page.is_a?(Mechanize::Page)
+      page.parser.noindex? and raise Mechanize::RobotsDisallowedError.new(uri)
+    end
+
     case response
     when Net::HTTPSuccess
-      if robots && page.is_a?(Mechanize::Page)
-        page.parser.noindex? and raise Mechanize::RobotsDisallowedError.new(uri)
-      end
-
       page
     when Mechanize::FileResponse
       page
@@ -303,7 +309,11 @@ class Mechanize::HTTP::Agent
       response_authenticate(response, page, uri, request, headers, params,
                             referer)
     else
-      raise Mechanize::ResponseCodeError.new(page, 'unhandled response')
+      if @allowed_error_codes.any? {|code| code.to_s == page.code} then
+        page
+      else
+        raise Mechanize::ResponseCodeError.new(page, 'unhandled response')
+      end
     end
   end
 
@@ -438,7 +448,7 @@ class Mechanize::HTTP::Agent
     end
   ensure
     # do not close a second time if we failed the first time
-    zio.close if zio and not (zio.closed? or gz_error)
+    zio.close if zio and !(zio.closed? or gz_error)
     body_io.close unless body_io.closed?
   end
 
@@ -629,6 +639,8 @@ class Mechanize::HTTP::Agent
       end
     end
 
+    uri.host = referer_uri.host if referer_uri && URI::HTTP === uri && uri.host.nil?
+
     scheme = uri.relative? ? 'relative' : uri.scheme.downcase
     uri = @scheme_handlers[scheme].call(uri, referer)
 
@@ -784,7 +796,7 @@ class Mechanize::HTTP::Agent
     return body_io if length.zero?
 
     out_io = case response['Content-Encoding']
-             when nil, 'none', '7bit' then
+             when nil, 'none', '7bit', "" then
                body_io
              when 'deflate' then
                content_encoding_inflate body_io
@@ -831,14 +843,15 @@ class Mechanize::HTTP::Agent
   end
 
   def save_cookies(uri, set_cookie)
-    log = log()	 # reduce method calls
-    Mechanize::Cookie.parse(uri, set_cookie, log) { |c|
-      if @cookie_jar.add(uri, c)
-        log.debug("saved cookie: #{c}") if log
-      else
-        log.debug("rejected cookie: #{c}") if log
-      end
-    }
+    return [] if set_cookie.nil?
+    if log = log()	 # reduce method calls
+      @cookie_jar.parse(set_cookie, uri, :logger => log) { |c|
+        log.debug("saved cookie: #{c}")
+        true
+      }
+    else
+      @cookie_jar.parse(set_cookie, uri)
+    end
   end
 
   def response_follow_meta_refresh response, uri, page, redirects
@@ -904,7 +917,7 @@ class Mechanize::HTTP::Agent
       body_io.rewind
       raise Mechanize::ChunkedTerminationError.new(e, response, body_io, uri,
                                                    @context)
-    rescue Net::HTTP::Persistent::Error => e
+    rescue Net::HTTP::Persistent::Error, Errno::ECONNRESET => e
       body_io.rewind
       raise Mechanize::ResponseReadError.new(e, response, body_io, uri,
                                              @context)
@@ -1158,7 +1171,7 @@ class Mechanize::HTTP::Agent
 
     out_io
   ensure
-    inflate.close
+    inflate.close if inflate.finished?
   end
 
   def log
@@ -1212,7 +1225,7 @@ class Mechanize::HTTP::Agent
   end
 
   def reset
-    @cookie_jar.clear!
+    @cookie_jar.clear
     @history.clear
   end
 

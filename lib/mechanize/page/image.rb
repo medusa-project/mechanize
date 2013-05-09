@@ -160,12 +160,12 @@ class Mechanize::Page::Image
   def url
     if relative? then
       if page.bases[0] then
-         page.bases[0].href + src
+        page.bases[0].href + src
       else
         page.uri + src
       end
     else
-      src
+      URI src
     end
   end
 

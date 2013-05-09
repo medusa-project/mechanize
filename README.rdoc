@@ -3,7 +3,7 @@
 * http://mechanize.rubyforge.org
 * https://github.com/sparklemotion/mechanize
 
-== DESCRIPTION
+== Description
 
 The Mechanize library is used for automating interaction with websites.
 Mechanize automatically stores and sends cookies, follows redirects,
@@ -13,22 +13,22 @@ a history.
 
 == Dependencies
 
-* ruby 1.8.7, 1.9.2, or 1.9.3
+* ruby 1.8.7, 1.9.2, 1.9.3, or 2.0.0
 * nokogiri[http://nokogiri.rubyforge.org]
 
-== SUPPORT:
+== Support:
 
 The mechanize mailing list is available here:
 
-  * http://rubyforge.org/mailman/listinfo/mechanize-users
+* http://rubyforge.org/mailman/listinfo/mechanize-users
 
 The bug tracker is available here:
 
-  * https://github.com/sparklemotion/mechanize/issues
+* https://github.com/sparklemotion/mechanize/issues
 
 == Examples
 
-If you are just starting, check out the GUIDE.  Also, check out the EXAMPLES
+If you are just starting, check out the GUIDE[http://mechanize.rubyforge.org/GUIDE_rdoc.html].  Also, check out the EXAMPLES[http://mechanize.rubyforge.org/EXAMPLES_rdoc.html]
 file.
 
 == Developers
@@ -67,9 +67,10 @@ This library comes with a shameless plug for employing me
 
 == Acknowledgments
 
-This library was heavily influenced by its namesake in the perl world.  A big
-thanks goes to Andy Lester (andy@petdance.com), the author of the original
-perl Mechanize which is available here[http://search.cpan.org/~petdance/WWW-Mechanize/].  Ruby Mechanize would not be around without you!
+This library was heavily influenced by its namesake in the Perl world.  A big
+thanks goes to {Andy Lester}[http://petdance.com],
+the author of the original Perl module WWW::Mechanize which is available
+here[http://search.cpan.org/dist/WWW-Mechanize/].  Ruby Mechanize would not be around without you!
 
 Thank you to Michael Neumann for starting the Ruby version.  Thanks to everyone
 who's helped out in various ways.  Finally, thank you to the people using this
@@ -77,5 +78,5 @@ library!
 
 == License
 
-This library is distributed under the MIT license.  Please see the LICENSE file.
+This library is distributed under the MIT license.  Please see the LICENSE[http://mechanize.rubyforge.org/LICENSE_rdoc.html] file.
 

@@ -253,6 +253,22 @@ class TestMechanizeHttpAgent < Mechanize::TestCase
     assert_equal '500', e.response_code
   end
 
+  def test_fetch_allowed_error_codes
+    @agent.allowed_error_codes = ['500']
+
+    page = @mech.get 'http://localhost/response_code?code=500'
+
+    assert_equal '500', page.code
+  end
+
+  def test_fetch_allowed_error_codes_int
+    @agent.allowed_error_codes = [500]
+
+    page = @mech.get 'http://localhost/response_code?code=500'
+
+    assert_equal '500', page.code
+  end
+
   def test_get_meta_refresh_header_follow_self
     @agent.follow_meta_refresh = true
     @agent.follow_meta_refresh_self = true
@@ -495,28 +511,24 @@ class TestMechanizeHttpAgent < Mechanize::TestCase
 
   def test_request_cookies
     uri = URI.parse 'http://host.example.com'
-    Mechanize::Cookie.parse uri, 'hello=world domain=.example.com' do |cookie|
-      @agent.cookie_jar.add uri, cookie
-    end
+    @agent.cookie_jar.parse 'hello=world domain=.example.com', uri
 
     @agent.request_cookies @req, uri
 
-    assert_equal 'hello=world domain=.example.com', @req['Cookie']
+    assert_equal 'hello="world domain=.example.com"', @req['Cookie']
   end
 
   def test_request_cookies_many
     uri = URI.parse 'http://host.example.com'
     cookie_str = 'a=b domain=.example.com, c=d domain=.example.com'
-    Mechanize::Cookie.parse uri, cookie_str do |cookie|
-      @agent.cookie_jar.add uri, cookie
-    end
+    @agent.cookie_jar.parse cookie_str, uri
 
     @agent.request_cookies @req, uri
 
-    expected_variant1 = 'a=b domain=\.example\.com; c=d domain=\.example\.com'
-    expected_variant2 = 'c=d domain=\.example\.com; a=b domain=\.example\.com'
-    
-    assert_match /^(#{expected_variant1}|#{expected_variant2})$/, @req['Cookie']
+    expected_variant1 = /a="b domain=\.example\.com"; c="d domain=\.example\.com"/
+    expected_variant2 = /c="d domain=\.example\.com"; a="b domain=\.example\.com"/
+
+    assert_match(/^(#{expected_variant1}|#{expected_variant2})$/, @req['Cookie'])
   end
 
   def test_request_cookies_none
@@ -527,9 +539,7 @@ class TestMechanizeHttpAgent < Mechanize::TestCase
 
   def test_request_cookies_wrong_domain
     uri = URI.parse 'http://host.example.com'
-    Mechanize::Cookie.parse uri, 'hello=world domain=.example.com' do |cookie|
-      @agent.cookie_jar.add uri, cookie
-    end
+    @agent.cookie_jar.parse 'hello=world domain=.example.com', uri
 
     @agent.request_cookies @req, @uri
 
@@ -931,7 +941,7 @@ class TestMechanizeHttpAgent < Mechanize::TestCase
     body_io = StringIO.new \
       "\037\213\b\0002\002\225M\000\003+H,*\001\000\306p\017I\005\000\000\000"
 
-    body = @agent.response_content_encoding @res, body_io
+    @agent.response_content_encoding @res, body_io
 
     assert body_io.closed?
 
@@ -947,7 +957,7 @@ class TestMechanizeHttpAgent < Mechanize::TestCase
     body_io = StringIO.new \
       "\037\213\b\0002\002\225M\000\003+H,*\001\000\306p\017I\004\000\000"
 
-    body = @agent.response_content_encoding @res, body_io
+    @agent.response_content_encoding @res, body_io
 
     assert body_io.closed?
 
@@ -995,6 +1005,14 @@ class TestMechanizeHttpAgent < Mechanize::TestCase
 
   def test_response_content_encoding_none
     @res.instance_variable_set :@header, 'content-encoding' => %w[none]
+
+    body = @agent.response_content_encoding @res, StringIO.new('part')
+
+    assert_equal 'part', body.read
+  end
+
+  def test_response_content_encoding_empty_string
+    @res.instance_variable_set :@header, 'content-encoding' => %w[]
 
     body = @agent.response_content_encoding @res, StringIO.new('part')
 
@@ -1061,7 +1079,7 @@ class TestMechanizeHttpAgent < Mechanize::TestCase
 
     @agent.response_cookies @res, uri, page
 
-    assert_equal ['a=b domain=.example.com'],
+    assert_equal ['a="b domain=.example.com"'],
                  @agent.cookie_jar.cookies(uri).map { |c| c.to_s }
   end
 
@@ -1080,7 +1098,10 @@ class TestMechanizeHttpAgent < Mechanize::TestCase
     cookies_from_jar = @agent.cookie_jar.cookies(uri)
 
     assert_equal 2, cookies_from_jar.length
-    cookies_from_jar.each { |cookie| assert cookies.include? cookie.to_s }
+    assert_equal [
+      'a="b domain=.example.com"',
+      'c="d domain=.example.com"',
+    ], cookies_from_jar.sort_by { |c| c.name }.map(&:to_s)
   end
 
   def test_response_cookies_meta
@@ -1099,8 +1120,26 @@ class TestMechanizeHttpAgent < Mechanize::TestCase
 
     @agent.response_cookies @res, uri, page
 
-    assert_equal ['a=b domain=.example.com'],
+    assert_equal ['a="b domain=.example.com"'],
                  @agent.cookie_jar.cookies(uri).map { |c| c.to_s }
+  end
+
+  def test_response_cookies_meta_bogus
+    uri = URI.parse 'http://host.example.com'
+
+    body = <<-BODY
+<head>
+  <meta http-equiv="Set-Cookie">
+</head>"
+    BODY
+
+    @res.instance_variable_set(:@header,
+                               'content-type' => %w[text/html])
+    page = Mechanize::Page.new uri, @res, body, 200, @mech
+
+    @agent.response_cookies @res, uri, page
+
+    assert_empty @agent.cookie_jar.cookies(uri)
   end
 
   def test_response_follow_meta_refresh
@@ -1318,13 +1357,13 @@ class TestMechanizeHttpAgent < Mechanize::TestCase
       expected = "π\n"
       expected.force_encoding Encoding::BINARY if expected.respond_to? :encoding
 
-      # Ruby 1.8.7 doesn't let us set the write mode of the tempfile to binary, 
+      # Ruby 1.8.7 doesn't let us set the write mode of the tempfile to binary,
       # so we should expect an inserted carriage return on some platforms
       expected_with_carriage_return = "π\r\n"
       expected_with_carriage_return.force_encoding Encoding::BINARY if expected_with_carriage_return.respond_to? :encoding
 
       body = io.read
-      assert_match /^(#{expected}|#{expected_with_carriage_return})$/m, body
+      assert_match(/^(#{expected}|#{expected_with_carriage_return})$/m, body)
       assert_equal Encoding::BINARY, body.encoding if body.respond_to? :encoding
     end
   end

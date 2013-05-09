@@ -54,7 +54,17 @@ class Mechanize::Download
 
   def save filename = nil
     filename = find_free_name filename
+    save! filename
+  end
 
+  alias save_as save
+
+  ##
+  # Use this method to save the content of body_io to +filename+.
+  # This method will overwrite any existing filename that exists with the
+  # same name.
+
+  def save! filename = nil
     dirname = File.dirname filename
     FileUtils.mkdir_p dirname
 

@@ -1,4 +1,5 @@
 .autotest
+.travis.yml
 CHANGELOG.rdoc
 EXAMPLES.rdoc
 GUIDE.rdoc
@@ -61,6 +62,7 @@ lib/mechanize/page/link.rb
 lib/mechanize/page/meta_refresh.rb
 lib/mechanize/parser.rb
 lib/mechanize/pluggable_parsers.rb
+lib/mechanize/prependable.rb
 lib/mechanize/redirect_limit_reached_error.rb
 lib/mechanize/redirect_not_get_or_head_error.rb
 lib/mechanize/response_code_error.rb
@@ -98,6 +100,7 @@ lib/mechanize/test_case/verb_servlet.rb
 lib/mechanize/unauthorized_error.rb
 lib/mechanize/unsupported_scheme_error.rb
 lib/mechanize/util.rb
+lib/mechanize/xml_file.rb
 test/data/htpasswd
 test/data/server.crt
 test/data/server.csr
@@ -196,4 +199,5 @@ test/test_mechanize_redirect_not_get_or_head_error.rb
 test/test_mechanize_response_read_error.rb
 test/test_mechanize_subclass.rb
 test/test_mechanize_util.rb
+test/test_mechanize_xml_file.rb
 test/test_multi_select.rb

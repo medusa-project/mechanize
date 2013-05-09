@@ -73,7 +73,7 @@ class Mechanize
   ##
   # The version of Mechanize you are using.
 
-  VERSION = '2.5.1'
+  VERSION = '2.6.0'
 
   ##
   # Base mechanize error class
@@ -134,6 +134,7 @@ class Mechanize
   }
 
   AGENT_ALIASES['Mac FireFox'] = AGENT_ALIASES['Mac Firefox']
+  AGENT_ALIASES['Linux FireFox'] = AGENT_ALIASES['Linux Firefox']
 
   def self.inherited(child) # :nodoc:
     child.html_parser = html_parser
@@ -466,7 +467,7 @@ class Mechanize
   #   agent.post('http://example.com/', "<message>hello</message>",
   #              'Content-Type' => 'application/xml')
 
-  def post(uri, query={}, headers={})
+  def post(uri, query = {}, headers = {})
     return request_with_entity(:post, uri, query, headers) if String === query
 
     node = {}
@@ -530,7 +531,7 @@ class Mechanize
   #
   #   agent.submit(page.forms.first, page.forms.first.buttons.first)
 
-  def submit(form, button=nil, headers={})
+  def submit(form, button = nil, headers = {})
     form.add_button_to_query(button) if button
 
     case form.method.upcase

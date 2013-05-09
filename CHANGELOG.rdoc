@@ -3,13 +3,43 @@
 === Unreleased
 
 * New Features
+  * Depend on http-cookie, add backwards compatible deprecations.
+    #257 Akinori MUSHA.
+  * Added `Download#save!` for overwriting existing files. #300 Sean Kim.
+
+=== 2.6.0
+
+* New Features
   * Mechanize#start and Mechanize#shutdown (Thanks, Damian Janowski!)
+  * Added Mechanize::Agent#allowed_error_codes for setting an Array
+    of status codes which should not raise an error. #248 Laurence Rowe.
+  * Added `File.save!` for overwriting existing files #219.
+  * DirectorySaver::save_to now accepts an option to decode filename. #262
+  * element(s)_with methods now accept a :search option for doing xpath/css
+    selector searching. #287 Philippe Bourgau
+  * Added httponly option for Mechanize::Cookie #242 by Paolo Perego.
+  * Added Mechanize::XmlFile as a default pluggable parser for handling
+    XML responses. #289
+
+* Minor enhancements
+  * Added Mechanize::Download#save_as as an alias to #save. #246
+  * Fix documentation for `Mechanize::Page` element matchers. #269
+  * Added Mechanize::Form::Field#raw_value for fetching a fields value
+    before it's sent through Mechanize::Util.html_unescape. #283
+  * Added iPad and Android user agents.  #277 by sambit, #278 by seansay.
 
 * Bug fix
   * Mechanize#cert and Mechanize#key now return the values set by
     #cert= and #key=. #244, #245 (Thanks, Robert Gogolok!)
   * Mechanize no longer submits disabled form fields.  #276 by Bogdan Gusiev,
     #279 by Ricardo Valeriano.
+  * Mechanize::File#save now behaves like Mechanize::Download#save in
+    that it will create the parent directory before saving.
+    #272, #280 by Ryan Kowalick
+  * Ensure `application/xml` is registered as an XML parser in
+    `PluggableParser`, not just `text/xml`. #266 James Gregory
+  * Mechanize now writes cookiestxt with a prefixed dot for wildcard domain
+    handling. #295 by Mike Morearty.
 
 === 2.5.2
 
@@ -890,4 +920,4 @@ Mechanize is now under the MIT license
 * Added a response code exception
 * Thanks to Brian Ellin (brianellin@gmail.com) for:
   Added support for CA files, and support for 301 response codes
-  
+

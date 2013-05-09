@@ -10,19 +10,21 @@ hoe = Hoe.spec 'mechanize' do
   developer 'Aaron Patterson', 'aaronp@rubyforge.org'
   developer 'Mike Dalessio',   'mike.dalessio@gmail.com'
   developer 'Akinori MUSHA',   'knu@idaemons.org'
+  developer 'Lee Jarvis',      'ljjarvis@gmail.com'
 
   self.readme_file      = 'README.rdoc'
   self.history_file     = 'CHANGELOG.rdoc'
   self.extra_rdoc_files += Dir['*.rdoc']
 
-  rdoc_locations << 'drbrain@rubyforge.org:/var/www/gforge-projects/mechanize/'
+  rdoc_locations << 'rubyforge.org:/var/www/gforge-projects/mechanize/'
 
   self.extra_deps << ['net-http-digest_auth', '~> 1.1', '>= 1.1.1']
   self.extra_deps << ['net-http-persistent',  '~> 2.5', '>= 2.5.2']
   self.extra_deps << ['mime-types',           '~> 1.17', '>= 1.17.2']
+  self.extra_deps << ['http-cookie',          '~> 1.0.0']
   self.extra_deps << ['nokogiri',             '~> 1.4']
   self.extra_deps << ['ntlm-http',            '~> 0.1', '>= 0.1.1']
-  self.extra_deps << ['webrobots',            '~> 0.0', '>= 0.0.9']
+  self.extra_deps << ['webrobots',            '<  0.2', '>= 0.0.9']
   self.extra_deps << ['domain_name',          '~> 0.5', '>= 0.5.1']
 
   self.spec_extras[:required_ruby_version] = '>= 1.8.7'
