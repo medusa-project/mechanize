@@ -20,4 +20,5 @@ Gem::Specification.new do |gem|
   gem.add_dependency "domain_name"
   gem.add_dependency "ntlm-http"
   gem.add_dependency "webrobots"
+  gem.add_dependency "http-cookie"
 end
